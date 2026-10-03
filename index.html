@@ -1,1795 +1,419 @@
 <!DOCTYPE html>
-<html lang="fr">
-
+<!--
+  World Radio v2.0
+  Copyright (c) 2026 Rafael ISTE - FarTekTV. Tous droits réservés / All rights reserved.
+  Data: Radio Browser (https://www.radio-browser.info) - community database.
+-->
+<html lang="en" data-theme="dark">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>🌍 World Radio</title>
-  <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
-
-    :root {
-      --bg-dark: #0a0e1a;
-      --bg-card-dark: #151b2e;
-      --bg-light: #f8fafc;
-      --bg-card-light: #ffffff;
-      --text-dark: #e2e8f0;
-      --text-light: #1e293b;
-      --accent: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      --accent-hover: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
-      --success: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
-      --warning: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-      --fav: linear-gradient(135deg, #ffd89b 0%, #19547b 100%);
-    }
-
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-
-    body {
-      font-family: 'Inter', sans-serif;
-      background: var(--bg-dark);
-      color: var(--text-dark);
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-      overflow-x: hidden;
-      padding-bottom: 120px;
-    }
-
-    body.player-minimized {
-      padding-bottom: 80px;
-    }
-
-    body::before {
-      content: '';
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background:
-        radial-gradient(circle at 20% 50%, rgba(102, 126, 234, 0.1) 0%, transparent 50%),
-        radial-gradient(circle at 80% 80%, rgba(118, 75, 162, 0.1) 0%, transparent 50%);
-      pointer-events: none;
-      z-index: 0;
-    }
-
-    header {
-      background: rgba(21, 27, 46, 0.8);
-      backdrop-filter: blur(20px);
-      position: sticky;
-      top: 0;
-      z-index: 100;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-      box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
-    }
-
-    nav {
-      max-width: 1400px;
-      margin: auto;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 20px 30px;
-      flex-wrap: wrap;
-      gap: 15px;
-    }
-
-    nav h1 {
-      font-size: 1.8rem;
-      font-weight: 800;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    nav h1::before {
-      content: '';
-      width: 30px;
-      height: 30px;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      border-radius: 50%;
-      display: inline-block;
-    }
-
-    .menu {
-      display: flex;
-      gap: 12px;
-      align-items: center;
-      flex-wrap: wrap;
-    }
-
-    .search-container {
-      display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
-    }
-
-    #search,
-    #frequencySearch {
-      padding: 12px 20px;
-      border-radius: 50px;
-      border: 2px solid rgba(102, 126, 234, 0.3);
-      background: rgba(21, 27, 46, 0.6);
-      color: var(--text-dark);
-      font-size: 0.95rem;
-      outline: none;
-      transition: all 0.3s ease;
-      width: 220px;
-    }
-
-    #search:focus,
-    #frequencySearch:focus {
-      border-color: rgba(102, 126, 234, 0.8);
-      background: rgba(21, 27, 46, 0.9);
-      transform: translateY(-2px);
-      box-shadow: 0 8px 20px rgba(102, 126, 234, 0.2);
-    }
-
-    .menu button {
-      padding: 12px 24px;
-      border-radius: 50px;
-      border: none;
-      font-weight: 600;
-      font-size: 0.9rem;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-      position: relative;
-      overflow: hidden;
-      cursor: pointer;
-    }
-
-    .menu button::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: rgba(255, 255, 255, 0.1);
-      opacity: 0;
-      transition: opacity 0.3s ease;
-    }
-
-    .menu button:hover::before {
-      opacity: 1;
-    }
-
-    .menu button:hover {
-      transform: translateY(-3px);
-      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
-    }
-
-    #favoritesMenu {
-      background: var(--fav);
-      color: #fff;
-    }
-
-    #toggleTheme {
-      background: var(--accent);
-      color: #fff;
-    }
-
-    #countriesList {
-      max-width: 1400px;
-      margin: 0 auto;
-      padding: 30px;
-      position: relative;
-      z-index: 1;
-    }
-
-    .country-card {
-      background: rgba(21, 27, 46, 0.6);
-      backdrop-filter: blur(10px);
-      border-radius: 16px;
-      margin-bottom: 15px;
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      overflow: hidden;
-      transition: all 0.3s ease;
-    }
-
-    .country-header {
-      padding: 20px 25px;
-      display: flex;
-      align-items: center;
-      gap: 15px;
-      cursor: pointer;
-      transition: all 0.3s ease;
-    }
-
-    .country-header:hover {
-      background: rgba(102, 126, 234, 0.1);
-    }
-
-    .country-flag {
-      font-size: 2rem;
-      width: 50px;
-      text-align: center;
-    }
-
-    .country-info {
-      flex: 1;
-    }
-
-    .country-name {
-      font-size: 1.1rem;
-      font-weight: 700;
-      color: #fff;
-    }
-
-    .country-count {
-      font-size: 0.85rem;
-      color: #94a3b8;
-      margin-top: 2px;
-    }
-
-    .country-arrow {
-      font-size: 1.2rem;
-      transition: transform 0.3s ease;
-      color: #667eea;
-    }
-
-    .country-card.open .country-arrow {
-      transform: rotate(90deg);
-    }
-
-    .country-stations {
-      max-height: 0;
-      overflow: hidden;
-      transition: max-height 0.5s ease;
-    }
-
-    .country-card.open .country-stations {
-      max-height: 5000px;
-    }
-
-    .country-stations-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-      gap: 20px;
-      padding: 0 25px 25px 25px;
-    }
-
-    .stations {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-      gap: 25px;
-      padding: 30px;
-      max-width: 1400px;
-      margin: 0 auto;
-      position: relative;
-      z-index: 1;
-    }
-
-    .station {
-      background: rgba(21, 27, 46, 0.6);
-      backdrop-filter: blur(10px);
-      padding: 25px;
-      border-radius: 24px;
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-      display: flex;
-      flex-direction: column;
-      gap: 15px;
-      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-      position: relative;
-      overflow: hidden;
-    }
-
-    .station::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: var(--accent);
-      opacity: 0;
-      transition: opacity 0.3s ease;
-      z-index: -1;
-    }
-
-    .station:hover {
-      transform: translateY(-8px) scale(1.02);
-      box-shadow: 0 20px 40px rgba(102, 126, 234, 0.3);
-      border-color: rgba(102, 126, 234, 0.5);
-    }
-
-    .station:hover::before {
-      opacity: 0.05;
-    }
-
-    .station h2 {
-      font-size: 1.2rem;
-      font-weight: 700;
-      color: #fff;
-      line-height: 1.3;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      flex-wrap: wrap;
-    }
-
-    .station p {
-      font-size: 0.9rem;
-      color: #94a3b8;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      flex-wrap: wrap;
-    }
-
-    .frequency-badge {
-      background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-      padding: 4px 10px;
-      border-radius: 12px;
-      font-size: 0.75rem;
-      font-weight: 700;
-      color: white;
-    }
-
-    .station-actions {
-      display: flex;
-      gap: 10px;
-      margin-top: auto;
-    }
-
-    .station button {
-      flex: 1;
-      padding: 12px;
-      border: none;
-      border-radius: 12px;
-      font-weight: 600;
-      font-size: 0.9rem;
-      transition: all 0.3s ease;
-      cursor: pointer;
-    }
-
-    .listen {
-      background: var(--success);
-      color: #fff;
-      box-shadow: 0 4px 15px rgba(17, 153, 142, 0.3);
-    }
-
-    .listen:hover {
-      transform: scale(1.05);
-      box-shadow: 0 6px 20px rgba(17, 153, 142, 0.5);
-    }
-
-    .fav {
-      background: rgba(255, 255, 255, 0.1);
-      color: #ffd89b;
-      font-size: 1.3rem;
-      width: 50px;
-      flex: 0 0 50px;
-    }
-
-    .fav:hover {
-      background: var(--fav);
-      color: #fff;
-      transform: scale(1.1) rotate(10deg);
-    }
-
-    .player {
-      position: fixed;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      background: rgba(10, 14, 26, 0.98);
-      backdrop-filter: blur(40px);
-      padding: 0;
-      border-top: 1px solid rgba(255, 255, 255, 0.1);
-      box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.5);
-      z-index: 150;
-      animation: slideUp 0.4s ease;
-      transition: all 0.3s ease;
-    }
-
-    @keyframes slideUp {
-      from {
-        transform: translateY(100%);
-      }
-
-      to {
-        transform: translateY(0);
-      }
-    }
-
-    .player.minimized .player-content {
-      padding: 12px 30px;
-    }
-
-    .player.minimized .player-top {
-      margin-bottom: 0;
-    }
-
-    .player.minimized .player-album {
-      width: 45px;
-      height: 45px;
-      font-size: 1.3rem;
-    }
-
-    .player.minimized .player-station-name {
-      font-size: 0.95rem;
-    }
-
-    .player.minimized .player-station-details,
-    .player.minimized .player-controls,
-    .player.minimized .playlist {
-      display: none !important;
-    }
-
-    .player-content {
-      max-width: 1400px;
-      margin: 0 auto;
-      padding: 20px 30px;
-    }
-
-    .player-top {
-      display: flex;
-      align-items: center;
-      gap: 15px;
-      margin-bottom: 15px;
-    }
-
-    .player-album {
-      width: 60px;
-      height: 60px;
-      border-radius: 12px;
-      background: var(--accent);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 2rem;
-      box-shadow: 0 8px 24px rgba(102, 126, 234, 0.4);
-      animation: pulse 2s ease-in-out infinite;
-      flex-shrink: 0;
-    }
-
-    @keyframes pulse {
-
-      0%,
-      100% {
-        transform: scale(1);
-      }
-
-      50% {
-        transform: scale(1.05);
-      }
-    }
-
-    .player-info {
-      flex: 1;
-      min-width: 0;
-    }
-
-    .player-station-name {
-      font-size: 1.1rem;
-      font-weight: 800;
-      color: #fff;
-      margin-bottom: 4px;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-
-    .player-station-details {
-      font-size: 0.8rem;
-      color: #94a3b8;
-      display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
-      align-items: center;
-    }
-
-    .player-station-details span {
-      display: flex;
-      align-items: center;
-      gap: 4px;
-    }
-
-    .player-actions {
-      display: flex;
-      gap: 8px;
-      flex-shrink: 0;
-    }
-
-    .player-minimize {
-      padding: 8px 16px;
-      border-radius: 50px;
-      border: none;
-      background: rgba(102, 126, 234, 0.2);
-      color: #667eea;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      font-size: 0.85rem;
-    }
-
-    .player-minimize:hover {
-      background: rgba(102, 126, 234, 0.3);
-      transform: scale(1.05);
-    }
-
-    .player-close {
-      padding: 8px 16px;
-      border-radius: 50px;
-      border: none;
-      background: rgba(239, 68, 68, 0.2);
-      color: #ef4444;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      font-size: 0.85rem;
-    }
-
-    .player-close:hover {
-      background: #ef4444;
-      color: #fff;
-      transform: scale(1.05);
-    }
-
-    .player-controls {
-      display: flex;
-      align-items: center;
-      gap: 15px;
-      margin-bottom: 12px;
-    }
-
-    .player-buttons {
-      display: flex;
-      gap: 12px;
-      align-items: center;
-    }
-
-    .player-btn {
-      width: 40px;
-      height: 40px;
-      border-radius: 50%;
-      border: none;
-      background: rgba(255, 255, 255, 0.1);
-      color: #fff;
-      font-size: 1rem;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .player-btn:hover {
-      background: rgba(255, 255, 255, 0.2);
-      transform: scale(1.1);
-    }
-
-    .player-btn-play {
-      width: 50px;
-      height: 50px;
-      background: var(--accent);
-      font-size: 1.3rem;
-      box-shadow: 0 4px 20px rgba(102, 126, 234, 0.4);
-    }
-
-    .player-btn-play:hover {
-      box-shadow: 0 6px 30px rgba(102, 126, 234, 0.6);
-      transform: scale(1.15);
-    }
-
-    .volume-control {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      flex: 1;
-      max-width: 180px;
-    }
-
-    .volume-icon {
-      color: #94a3b8;
-      font-size: 1rem;
-    }
-
-    .volume-slider {
-      flex: 1;
-      height: 4px;
-      -webkit-appearance: none;
-      appearance: none;
-      background: rgba(255, 255, 255, 0.1);
-      border-radius: 10px;
-      outline: none;
-    }
-
-    .volume-slider::-webkit-slider-thumb {
-      -webkit-appearance: none;
-      appearance: none;
-      width: 16px;
-      height: 16px;
-      border-radius: 50%;
-      background: var(--accent);
-      cursor: pointer;
-      box-shadow: 0 2px 10px rgba(102, 126, 234, 0.5);
-    }
-
-    .volume-slider::-moz-range-thumb {
-      width: 16px;
-      height: 16px;
-      border-radius: 50%;
-      background: var(--accent);
-      cursor: pointer;
-      border: none;
-      box-shadow: 0 2px 10px rgba(102, 126, 234, 0.5);
-    }
-
-    .player-visualizer {
-      display: flex;
-      align-items: flex-end;
-      gap: 4px;
-      height: 40px;
-      flex: 1;
-      justify-content: center;
-    }
-
-    .visualizer-bar {
-      width: 4px;
-      background: var(--accent);
-      border-radius: 2px;
-      transition: height 0.05s ease-out;
-      height: 20%;
-    }
-
-    .playlist {
-      display: flex;
-      gap: 12px;
-      overflow-x: auto;
-      padding: 15px 0;
-      scrollbar-width: thin;
-      scrollbar-color: rgba(102, 126, 234, 0.5) transparent;
-    }
-
-    .playlist::-webkit-scrollbar {
-      height: 6px;
-    }
-
-    .playlist::-webkit-scrollbar-track {
-      background: transparent;
-    }
-
-    .playlist::-webkit-scrollbar-thumb {
-      background: rgba(102, 126, 234, 0.5);
-      border-radius: 10px;
-    }
-
-    .playlist .item {
-      background: rgba(255, 255, 255, 0.1);
-      padding: 10px 20px;
-      border-radius: 50px;
-      cursor: pointer;
-      white-space: nowrap;
-      color: #fff;
-      font-weight: 600;
-      font-size: 0.85rem;
-      transition: all 0.3s ease;
-      border: 1px solid rgba(255, 255, 255, 0.1);
-    }
-
-    .playlist .item:hover {
-      background: var(--accent);
-      transform: translateY(-2px);
-      box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
-    }
-
-    .playlist .item.active {
-      background: var(--accent);
-      box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
-    }
-
-    #favoritesOverlay {
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: rgba(10, 14, 26, 0.98);
-      backdrop-filter: blur(20px);
-      padding: 40px 20px;
-      display: none;
-      flex-direction: column;
-      overflow-y: auto;
-      z-index: 200;
-      animation: fadeIn 0.3s ease;
-    }
-
-    @keyframes fadeIn {
-      from {
-        opacity: 0;
-      }
-
-      to {
-        opacity: 1;
-      }
-    }
-
-    #favoritesOverlay h2 {
-      font-size: 2rem;
-      margin-bottom: 30px;
-      text-align: center;
-      background: var(--fav);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-    }
-
-    #closeFav {
-      position: fixed;
-      top: 30px;
-      right: 30px;
-      padding: 12px 24px;
-      border: none;
-      border-radius: 50px;
-      background: var(--warning);
-      color: #fff;
-      font-weight: 600;
-      font-size: 1rem;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      z-index: 201;
-    }
-
-    #closeFav:hover {
-      transform: scale(1.1);
-      box-shadow: 0 8px 25px rgba(245, 87, 108, 0.4);
-    }
-
-    #favoritesContainer {
-      max-width: 800px;
-      margin: 0 auto;
-      width: 100%;
-    }
-
-    .favItem {
-      background: rgba(21, 27, 46, 0.8);
-      backdrop-filter: blur(10px);
-      padding: 20px 25px;
-      border-radius: 16px;
-      margin: 12px 0;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      font-weight: 600;
-      cursor: pointer;
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      transition: all 0.3s ease;
-    }
-
-    .favItem:hover {
-      background: var(--fav);
-      color: #fff;
-      transform: translateX(10px);
-      box-shadow: 0 8px 25px rgba(255, 216, 155, 0.3);
-    }
-
-    body.light {
-      background: var(--bg-light);
-      color: var(--text-light);
-    }
-
-    body.light::before {
-      background:
-        radial-gradient(circle at 20% 50%, rgba(102, 126, 234, 0.05) 0%, transparent 50%),
-        radial-gradient(circle at 80% 80%, rgba(118, 75, 162, 0.05) 0%, transparent 50%);
-    }
-
-    body.light header {
-      background: rgba(255, 255, 255, 0.9);
-      border-bottom-color: rgba(0, 0, 0, 0.1);
-    }
-
-    body.light #search,
-    body.light #frequencySearch {
-      background: rgba(248, 250, 252, 0.9);
-      color: var(--text-light);
-      border-color: rgba(102, 126, 234, 0.2);
-    }
-
-    body.light .station,
-    body.light .country-card {
-      background: rgba(255, 255, 255, 0.9);
-      border-color: rgba(0, 0, 0, 0.05);
-    }
-
-    body.light .station h2,
-    body.light .country-name,
-    body.light .player-station-name {
-      color: var(--text-light);
-    }
-
-    body.light .player {
-      background: rgba(255, 255, 255, 0.98);
-      border-top-color: rgba(0, 0, 0, 0.1);
-    }
-
-    body.light .favItem {
-      background: rgba(255, 255, 255, 0.9);
-      color: var(--text-light);
-    }
-
-    .loading {
-      display: inline-block;
-      width: 20px;
-      height: 20px;
-      border: 3px solid rgba(255, 255, 255, 0.3);
-      border-radius: 50%;
-      border-top-color: #fff;
-      animation: spin 1s linear infinite;
-    }
-
-    /* Sleep Timer Modal */
-    #sleepTimerModal {
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: rgba(10, 14, 26, 0.98);
-      backdrop-filter: blur(20px);
-      padding: 40px 20px;
-      display: none;
-      align-items: center;
-      justify-content: center;
-      z-index: 200;
-      animation: fadeIn 0.3s ease;
-    }
-
-    .timer-content {
-      background: rgba(21, 27, 46, 0.9);
-      backdrop-filter: blur(10px);
-      padding: 40px;
-      border-radius: 24px;
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      max-width: 500px;
-      width: 100%;
-      text-align: center;
-    }
-
-    .timer-content h2 {
-      font-size: 2rem;
-      margin-bottom: 30px;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-    }
-
-    .timer-presets {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 15px;
-      margin-bottom: 30px;
-    }
-
-    .timer-preset-btn {
-      padding: 15px;
-      border: 2px solid rgba(102, 126, 234, 0.3);
-      border-radius: 16px;
-      background: rgba(255, 255, 255, 0.05);
-      color: #fff;
-      font-weight: 600;
-      font-size: 0.95rem;
-      cursor: pointer;
-      transition: all 0.3s ease;
-    }
-
-    .timer-preset-btn:hover {
-      background: var(--accent);
-      border-color: rgba(102, 126, 234, 0.8);
-      transform: translateY(-3px);
-      box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
-    }
-
-    .timer-custom {
-      margin-bottom: 30px;
-    }
-
-    .timer-custom label {
-      display: block;
-      font-size: 0.9rem;
-      color: #94a3b8;
-      margin-bottom: 10px;
-    }
-
-    .timer-custom input {
-      width: 100%;
-      padding: 12px 20px;
-      border-radius: 50px;
-      border: 2px solid rgba(102, 126, 234, 0.3);
-      background: rgba(21, 27, 46, 0.6);
-      color: var(--text-dark);
-      font-size: 1rem;
-      outline: none;
-      transition: all 0.3s ease;
-      text-align: center;
-    }
-
-    .timer-custom input:focus {
-      border-color: rgba(102, 126, 234, 0.8);
-      background: rgba(21, 27, 46, 0.9);
-      box-shadow: 0 8px 20px rgba(102, 126, 234, 0.2);
-    }
-
-    .timer-actions {
-      display: flex;
-      gap: 15px;
-    }
-
-    .timer-actions button {
-      flex: 1;
-      padding: 15px;
-      border: none;
-      border-radius: 50px;
-      font-weight: 600;
-      font-size: 1rem;
-      cursor: pointer;
-      transition: all 0.3s ease;
-    }
-
-    .timer-start {
-      background: var(--success);
-      color: #fff;
-    }
-
-    .timer-start:hover {
-      transform: translateY(-3px);
-      box-shadow: 0 8px 20px rgba(17, 153, 142, 0.4);
-    }
-
-    .timer-cancel {
-      background: var(--warning);
-      color: #fff;
-    }
-
-    .timer-cancel:hover {
-      transform: translateY(-3px);
-      box-shadow: 0 8px 20px rgba(245, 87, 108, 0.4);
-    }
-
-    .timer-active-display {
-      background: rgba(102, 126, 234, 0.2);
-      padding: 15px 20px;
-      border-radius: 16px;
-      margin-bottom: 20px;
-      border: 2px solid rgba(102, 126, 234, 0.4);
-    }
-
-    .timer-active-display .timer-countdown {
-      font-size: 2rem;
-      font-weight: 800;
-      color: #667eea;
-      margin-bottom: 5px;
-    }
-
-    .timer-active-display .timer-label {
-      font-size: 0.9rem;
-      color: #94a3b8;
-    }
-
-    .timer-stop {
-      background: rgba(239, 68, 68, 0.2);
-      color: #ef4444;
-      border: 2px solid rgba(239, 68, 68, 0.3);
-    }
-
-    .timer-stop:hover {
-      background: #ef4444;
-      color: #fff;
-    }
-
-    @keyframes spin {
-      to {
-        transform: rotate(360deg);
-      }
-    }
-
-    @media (max-width: 768px) {
-      nav {
-        padding: 15px 20px;
-      }
-
-      nav h1 {
-        font-size: 1.5rem;
-      }
-
-      #search,
-      #frequencySearch {
-        width: 100%;
-      }
-
-      .stations,
-      .country-stations-grid {
-        grid-template-columns: 1fr;
-        padding: 20px;
-      }
-
-      .player-content {
-        padding: 15px 20px;
-      }
-
-      .player-top {
-        flex-wrap: wrap;
-      }
-
-      .player-actions {
-        width: 100%;
-        justify-content: flex-end;
-      }
-
-      .player-controls {
-        flex-wrap: wrap;
-      }
-
-      .volume-control {
-        max-width: 100%;
-      }
-
-      .player-visualizer {
-        width: 100%;
-      }
-
-      #closeFav {
-        top: 20px;
-        right: 20px;
-        padding: 10px 20px;
-      }
-    }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Tune into live radio stations from every country.">
+<title>World Radio</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700&family=Hanken+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+/* (c) Rafael ISTE - FarTekTV */
+:root{
+  --bg:#0c2a26; --panel:#12372f; --line:#1f4d43; --ink:#e9efe0; --mute:#8fb0a3;
+  --sig:#f4d03f; --on-sig:#0c2a26; --bad:#ff8a6b;
+  --deck-h:132px;
+}
+[data-theme=light]{
+  --bg:#e4eedf; --panel:#f3f8ef; --line:#c3d6c6; --ink:#0c2a26; --mute:#4f7468;
+  --sig:#f4d03f; --on-sig:#0c2a26; --bad:#b53a1c;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-padding-bottom:var(--deck-h)}
+body{font:400 16px/1.5 'Hanken Grotesk',system-ui,sans-serif;background:var(--bg);color:var(--ink);padding-bottom:calc(var(--deck-h) + 24px);transition:background .25s,color .25s}
+button,input{font:inherit;color:inherit}
+button{cursor:pointer;background:none;border:0}
+:focus-visible{outline:3px solid var(--sig);outline-offset:2px;border-radius:6px}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+
+/* Top bar */
+.top{display:flex;align-items:center;gap:20px;padding:18px clamp(16px,4vw,40px);position:sticky;top:0;z-index:20;background:var(--bg);border-bottom:2px solid var(--line)}
+.brand{font:700 1.15rem 'Unbounded',sans-serif;letter-spacing:-.02em;white-space:nowrap}
+.brand b{display:inline-block;width:.8em;height:.8em;border-radius:50%;background:var(--sig);margin-right:.45em;vertical-align:-.05em;box-shadow:0 0 0 4px var(--line)}
+.find{flex:1;max-width:560px;position:relative}
+.find input{width:100%;padding:11px 16px;border-radius:10px;border:2px solid var(--line);background:var(--panel)}
+.find input:focus{border-color:var(--sig);outline:0}
+.find input::placeholder{color:var(--mute)}
+.chip{padding:9px 14px;border-radius:10px;border:2px solid var(--line);font-weight:500}
+.chip:hover{border-color:var(--sig)}
+
+/* Layout */
+.layout{display:grid;grid-template-columns:270px 1fr;gap:clamp(16px,3vw,40px);padding:24px clamp(16px,4vw,40px);max-width:1360px;margin:auto}
+aside{position:sticky;top:92px;align-self:start;max-height:calc(100vh - 92px - var(--deck-h) - 20px);display:flex;flex-direction:column;gap:10px}
+#cfilter{padding:9px 12px;border-radius:10px;border:2px solid var(--line);background:transparent;width:100%}
+#cfilter:focus{border-color:var(--sig);outline:0}
+#countries{overflow-y:auto;display:flex;flex-direction:column;gap:2px;scrollbar-width:thin;scrollbar-color:var(--line) transparent}
+.c{display:flex;justify-content:space-between;gap:10px;padding:9px 12px;border-radius:10px;text-align:left}
+.c small{color:var(--mute);font-size:.8rem;align-self:center}
+.c:hover{background:var(--panel)}
+.c[aria-current=true]{background:var(--sig);color:var(--on-sig);font-weight:700}
+.c[aria-current=true] small{color:inherit}
+.c.favs{border:2px dashed var(--line);margin-bottom:6px}
+.c.favs[aria-current=true]{border-style:solid;border-color:var(--sig)}
+
+h1{font:700 clamp(1.6rem,3.4vw,2.6rem)/1.1 'Unbounded',sans-serif;letter-spacing:-.03em;margin-bottom:6px}
+.sub{color:var(--mute);margin-bottom:22px}
+.msg{padding:40px 0;color:var(--mute)}
+.msg.err{color:var(--bad)}
+
+/* Station rows */
+#list{list-style:none;display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,400px),1fr));gap:12px}
+.row{display:grid;grid-template-columns:56px 1fr auto;align-items:center;gap:14px;padding:12px;border-radius:14px;background:var(--panel);border:2px solid transparent;cursor:pointer}
+.row:hover{border-color:var(--line)}
+.row.on{border-color:var(--sig)}
+.tile{width:56px;height:56px;border-radius:12px;display:grid;place-items:center;font:700 .95rem 'Unbounded',sans-serif;color:var(--on-sig)}
+.meta{min-width:0}
+.meta b{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.meta small{display:block;color:var(--mute);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.right{display:flex;align-items:center;gap:6px}
+.freq{font:500 .85rem 'Unbounded',sans-serif;font-variant-numeric:tabular-nums;color:var(--sig)}
+[data-theme=light] .freq{color:var(--ink)}
+.star{font-size:1.35rem;color:var(--mute);width:38px;height:38px;border-radius:10px}
+.star:hover{background:var(--line)}
+.star.is{color:var(--sig)}
+[data-theme=light] .star.is{color:#c59b00}
+
+/* Deck (player) */
+.deck{position:fixed;inset:auto 0 0 0;z-index:30;background:var(--panel);border-top:2px solid var(--line)}
+.dial{position:relative;height:30px;margin:0 clamp(16px,4vw,40px);border-bottom:2px solid var(--line);
+  background:repeating-linear-gradient(90deg,var(--mute) 0 1px,transparent 1px 12px) bottom/100% 8px no-repeat,
+             repeating-linear-gradient(90deg,var(--ink) 0 2px,transparent 2px 60px) bottom/100% 16px no-repeat;opacity:.9}
+.dial span{position:absolute;top:3px;font-size:.7rem;color:var(--mute);transform:translateX(-50%)}
+.needle{position:absolute;bottom:-2px;left:50%;width:4px;height:34px;background:var(--sig);border-radius:2px;transition:left .9s cubic-bezier(.3,1.3,.5,1);box-shadow:0 0 12px var(--sig)}
+.deckrow{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:16px;padding:12px clamp(16px,4vw,40px) 14px}
+.now{display:flex;align-items:center;gap:12px;min-width:0}
+.eq{display:flex;align-items:flex-end;gap:3px;height:26px;width:26px;flex:none}
+.eq i{flex:1;background:var(--sig);border-radius:2px;height:20%}
+.playing .eq i{animation:eq .9s ease-in-out infinite alternate}
+.eq i:nth-child(2){animation-delay:-.3s}.eq i:nth-child(3){animation-delay:-.6s}.eq i:nth-child(4){animation-delay:-.15s}
+@keyframes eq{to{height:100%}}
+.now div{min-width:0}
+#nName{font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#nState{font-size:.85rem;color:var(--mute)}
+#nState.err{color:var(--bad)}
+.ctl{display:flex;align-items:center;gap:8px}
+.ib{width:42px;height:42px;border-radius:50%;display:grid;place-items:center;font-size:1.05rem}
+.ib:hover{background:var(--line)}
+.ib.play{width:54px;height:54px;background:var(--sig);color:var(--on-sig);font-size:1.3rem}
+.ib.play:hover{filter:brightness(1.08)}
+.opts{display:flex;justify-content:flex-end;align-items:center;gap:10px;position:relative}
+#vol{width:110px;accent-color:var(--sig)}
+#tbtn.active{background:var(--sig);color:var(--on-sig);border-color:var(--sig)}
+.pop{position:absolute;right:0;bottom:calc(100% + 12px);background:var(--panel);border:2px solid var(--line);border-radius:14px;padding:14px;width:230px;display:none}
+.pop.open{display:block}
+.pop p{margin-bottom:8px;font-weight:700}
+.pop .g{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.pop button{padding:8px;border-radius:8px;border:2px solid var(--line)}
+.pop button:hover{border-color:var(--sig)}
+.pop .off{grid-column:1/-1;margin-top:4px;color:var(--bad)}
+
+@media(max-width:820px){
+  :root{--deck-h:176px}
+  .top{flex-wrap:wrap;gap:12px}.find{order:3;flex-basis:100%;max-width:none}
+  .layout{grid-template-columns:1fr;padding-top:16px}
+  aside{position:static;max-height:none}
+  #countries{flex-direction:row;overflow-x:auto;padding-bottom:6px}
+  .c{flex:none;border:2px solid var(--line)}
+  .deckrow{grid-template-columns:1fr auto;grid-template-areas:"now now" "ctl opts"}
+  .now{grid-area:now}.ctl{grid-area:ctl}.opts{grid-area:opts}
+  #vol{width:80px}
+}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
 </head>
-
 <body>
-
-  <header>
-    <nav>
-      <h1>World Radio</h1>
-      <div class="menu">
-        <div class="search-container">
-          <input id="search" placeholder="Search by name or frequency (FM/MHz)..." />
-        </div>
-        <button id="favoritesMenu">⭐ Favorites</button>
-        <button id="sleepTimerBtn">😴 Sleep Timer</button>
-        <button id="toggleTheme">🌙 Theme</button>
-      </div>
-    </nav>
-  </header>
-
-  <div id="countriesList"></div>
-  <div class="stations" id="stations"></div>
-
-  <div id="favoritesOverlay">
-    <button id="closeFav">✕ Close</button>
-    <h2>⭐ My Favorite Stations</h2>
-    <div id="favoritesContainer"></div>
+<header class="top">
+  <div class="brand"><b></b>World Radio</div>
+  <div class="find">
+    <label class="sr" for="q">Search stations</label>
+    <input id="q" type="search" placeholder="Station, genre or frequency (press / to search)" autocomplete="off">
   </div>
-  <div id="sleepTimerModal">
-    <div class="timer-content">
-      <h2>😴 Sleep Timer</h2>
+  <button class="chip" id="theme" aria-label="Toggle light or dark theme">Light</button>
+</header>
 
-      <div id="timerActiveDisplay" style="display: none;" class="timer-active-display">
-        <div class="timer-countdown" id="timerCountdown">--:--</div>
-        <div class="timer-label">Remaining time</div>
-      </div>
+<div class="layout">
+  <aside aria-label="Countries">
+    <label class="sr" for="cfilter">Filter countries</label>
+    <input id="cfilter" type="search" placeholder="Filter countries" autocomplete="off">
+    <nav id="countries"></nav>
+  </aside>
+  <main>
+    <h1 id="title">Loading</h1>
+    <p class="sub" id="sub"></p>
+    <ul id="list" aria-live="polite"></ul>
+    <p class="msg" id="msg" hidden></p>
+  </main>
+</div>
 
-      <div id="timerSetup">
-        <div class="timer-presets">
-          <button class="timer-preset-btn" data-minutes="15">15 min</button>
-          <button class="timer-preset-btn" data-minutes="30">30 min</button>
-          <button class="timer-preset-btn" data-minutes="45">45 min</button>
-          <button class="timer-preset-btn" data-minutes="60">1 hour</button>
-          <button class="timer-preset-btn" data-minutes="90">1.5 hours</button>
-          <button class="timer-preset-btn" data-minutes="120">2 hours</button>
-        </div>
-
-        <div class="timer-custom">
-          <label for="customTimer">Custom time (minutes)</label>
-          <input type="number" id="customTimer" placeholder="Enter minutes..." min="1" max="999" />
-        </div>
-
-        <div class="timer-actions">
-          <button class="timer-start" id="startTimer">Start Timer</button>
-          <button class="timer-cancel" id="cancelTimerSetup">Cancel</button>
-        </div>
-      </div>
-
-      <div id="timerActive" style="display: none;">
-        <div class="timer-actions">
-          <button class="timer-stop" id="stopTimer">Stop Timer</button>
+<footer class="deck" id="deck">
+  <div class="dial" aria-hidden="true">
+    <span style="left:6%">88</span><span style="left:26%">92</span><span style="left:46%">96</span><span style="left:66%">100</span><span style="left:86%">104</span>
+    <div class="needle" id="needle"></div>
+  </div>
+  <div class="deckrow">
+    <div class="now">
+      <div class="eq" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+      <div><div id="nName">Pick a station</div><div id="nState" role="status">Choose a country or search above.</div></div>
+    </div>
+    <div class="ctl">
+      <button class="ib" id="prev" aria-label="Previous station">&#9198;</button>
+      <button class="ib play" id="pp" aria-label="Play">&#9654;</button>
+      <button class="ib" id="next" aria-label="Next station">&#9197;</button>
+    </div>
+    <div class="opts">
+      <label class="sr" for="vol">Volume</label>
+      <input id="vol" type="range" min="0" max="100" value="70">
+      <button class="chip" id="tbtn" aria-expanded="false" aria-controls="pop">Sleep timer</button>
+      <div class="pop" id="pop">
+        <p id="tTitle">Stop playback in</p>
+        <div class="g">
+          <button data-m="15">15 min</button><button data-m="30">30 min</button><button data-m="60">1 hour</button>
+          <button data-m="90">90 min</button><button data-m="120">2 hours</button><button data-m="180">3 hours</button>
+          <button class="off" id="toff" hidden>Cancel timer</button>
         </div>
       </div>
     </div>
   </div>
-  <div class="player" id="playerContainer" style="display:none;">
-    <div class="player-content">
-      <div class="player-top">
-        <div class="player-album">📻</div>
-        <div class="player-info">
-          <div class="player-station-name" id="playerStationName">Station Name</div>
-          <div class="player-station-details" id="playerStationDetails">
-            <span>🌍 Country</span>
-            <span>📡 Frequency</span>
-            <span>🎵 Bitrate</span>
-          </div>
-        </div>
-        <div class="player-actions">
-          <button class="player-minimize" id="playerMinimize">▼ Reduce</button>
-          <button class="player-close" id="playerClose">✕ Close</button>
-        </div>
-      </div>
-
-      <div class="player-controls">
-        <div class="player-buttons">
-          <button class="player-btn" id="prevBtn">⏮</button>
-          <button class="player-btn player-btn-play" id="playPauseBtn">▶</button>
-          <button class="player-btn" id="nextBtn">⏭</button>
-        </div>
-
-        <div class="player-visualizer" id="visualizer">
-          <div class="visualizer-bar"></div>
-          <div class="visualizer-bar"></div>
-          <div class="visualizer-bar"></div>
-          <div class="visualizer-bar"></div>
-          <div class="visualizer-bar"></div>
-          <div class="visualizer-bar"></div>
-          <div class="visualizer-bar"></div>
-          <div class="visualizer-bar"></div>
-          <div class="visualizer-bar"></div>
-        </div>
-
-        <div class="volume-control">
-          <span class="volume-icon">🔊</span>
-          <input type="range" id="volumeSlider" class="volume-slider" min="0" max="100" value="70">
-        </div>
-      </div>
-
-      <div class="playlist" id="playlistContainer"></div>
-    </div>
-  </div>
-
-  <audio id="player" preload="none" crossorigin="anonymous"></audio>
-
-  <script>
-    const API = "https://de1.api.radio-browser.info/json/stations/search";
-    const API_COUNTRIES = "https://de1.api.radio-browser.info/json/countries";
-
-    const $ = id => document.getElementById(id);
-    const stationsDiv = $("stations");
-    const searchInput = $("search");
-    const player = $("player");
-    const playerContainer = $("playerContainer");
-    const playerStationName = $("playerStationName");
-    const playerStationDetails = $("playerStationDetails");
-    const playPauseBtn = $("playPauseBtn");
-    const prevBtn = $("prevBtn");
-    const nextBtn = $("nextBtn");
-    const volumeSlider = $("volumeSlider");
-    const playerClose = $("playerClose");
-    const playerMinimize = $("playerMinimize");
-    const favoritesContainer = $("favoritesContainer");
-    const favoritesMenu = $("favoritesMenu");
-    const favoritesOverlay = $("favoritesOverlay");
-    const closeFav = $("closeFav");
-    const countriesListDiv = $("countriesList");
-    const playlistContainer = $("playlistContainer");
-    const toggleTheme = $("toggleTheme");
-    const sleepTimerBtn = $("sleepTimerBtn");
-    const sleepTimerModal = $("sleepTimerModal");
-    const timerSetup = $("timerSetup");
-    const timerActive = $("timerActive");
-    const timerActiveDisplay = $("timerActiveDisplay");
-    const timerCountdown = $("timerCountdown");
-    const customTimer = $("customTimer");
-    const startTimer = $("startTimer");
-    const stopTimer = $("stopTimer");
-    const cancelTimerSetup = $("cancelTimerSetup");
-
-    let favorites = JSON.parse(localStorage.getItem("favorites")) || [];
-    let playlist = [];
-    let currentStationIndex = 0;
-    let isPlaying = false;
-    let loadedCountries = {};
-    let sleepTimerTimeout = null;
-    let sleepTimerInterval = null;
-    let sleepTimerEndTime = null;
-
-    let audioContext;
-    let analyser;
-    let dataArray;
-    let animationId;
-    let source;
-    let isAudioContextInitialized = false;
-
-    const countryFlags = {
-      'France': '🇫🇷', 'United States': '🇺🇸', 'United Kingdom': '🇬🇧', 'Germany': '🇩🇪',
-      'Spain': '🇪🇸', 'Italy': '🇮🇹', 'Japan': '🇯🇵', 'Canada': '🇨🇦',
-      'Australia': '🇦🇺', 'Brazil': '🇧🇷', 'Mexico': '🇲🇽', 'Netherlands': '🇳🇱',
-      'Belgium': '🇧🇪', 'Switzerland': '🇨🇭', 'Sweden': '🇸🇪', 'Norway': '🇳🇴',
-      'Denmark': '🇩🇰', 'Finland': '🇫🇮', 'Poland': '🇵🇱', 'Russia': '🇷🇺',
-      'China': '🇨🇳', 'India': '🇮🇳', 'South Korea': '🇰🇷', 'Argentina': '🇦🇷',
-      'Chile': '🇨🇱', 'Portugal': '🇵🇹', 'Greece': '🇬🇷', 'Turkey': '🇹🇷',
-      'Austria': '🇦🇹', 'Ireland': '🇮🇪', 'New Zealand': '🇳🇿', 'South Africa': '🇿🇦',
-      'Egypt': '🇪🇬', 'Israel': '🇮🇱', 'UAE': '🇦🇪', 'Saudi Arabia': '🇸🇦',
-      'Thailand': '🇹🇭', 'Vietnam': '🇻🇳', 'Indonesia': '🇮🇩', 'Philippines': '🇵🇭',
-      'Malaysia': '🇲🇾', 'Singapore': '🇸🇬', 'Czech Republic': '🇨🇿', 'Hungary': '🇭🇺',
-      'Romania': '🇷🇴', 'Ukraine': '🇺🇦', 'Colombia': '🇨🇴', 'Peru': '🇵🇪', 'Venezuela': '🇻🇪'
-    };
-
-    const getFlag = (country) => countryFlags[country] || '🌐';
-
-    const createEl = (tag, options = {}) => {
-      const el = document.createElement(tag);
-      if (options.class) el.className = options.class;
-      if (options.text) el.textContent = options.text;
-      if (options.html) el.innerHTML = options.html;
-      if (options.onclick) el.onclick = options.onclick;
-      return el;
-    };
-
-    const filterQualityStations = (stations) => {
-      return stations.filter(st => {
-        if (!st.url_resolved || st.url_resolved.trim() === '') return false;
-        const url = st.url_resolved.toLowerCase();
-        if (url.includes('.html') || url.includes('.php') || url.includes('.asp')) return false;
-        if (st.bitrate && st.bitrate < 32) return false;
-        if (!st.name || st.name.trim() === '' || st.name.length < 2) return false;
-        if (st.lastcheckok === 0) return false;
-        if (st.votes && st.votes < -5) return false;
-        return true;
-      })
-        .filter((st, index, self) =>
-          index === self.findIndex(s => s.url_resolved === st.url_resolved)
-        )
-        .sort((a, b) => {
-          const scoreA = (a.votes || 0) * 10 + (a.bitrate || 0) / 10;
-          const scoreB = (b.votes || 0) * 10 + (b.bitrate || 0) / 10;
-          return scoreB - scoreA;
-        });
-    };
-
-    const initAudioContext = () => {
-      if (isAudioContextInitialized) return;
-
-      try {
-        audioContext = new (window.AudioContext || window.webkitAudioContext)();
-        analyser = audioContext.createAnalyser();
-        analyser.fftSize = 64;
-        analyser.smoothingTimeConstant = 0.8;
-
-        const bufferLength = analyser.frequencyBinCount;
-        dataArray = new Uint8Array(bufferLength);
-
-        source = audioContext.createMediaElementSource(player);
-        source.connect(analyser);
-        analyser.connect(audioContext.destination);
-
-        isAudioContextInitialized = true;
-        animateVisualizer();
-        console.log('🎵 Audio visualizer initialized!');
-      } catch (e) {
-        console.error('Web Audio API error:', e);
-      }
-    };
-
-    const animateVisualizer = () => {
-      if (!analyser || !dataArray) return;
-
-      animationId = requestAnimationFrame(animateVisualizer);
-      analyser.getByteFrequencyData(dataArray);
-
-      const bars = document.querySelectorAll('.visualizer-bar');
-      const step = Math.floor(dataArray.length / bars.length);
-
-      bars.forEach((bar, i) => {
-        const dataIndex = Math.min(i * step, dataArray.length - 1);
-        const value = dataArray[dataIndex];
-        const normalized = value / 255;
-        const height = Math.max(normalized * 100, 15);
-        bar.style.height = `${height}%`;
-      });
-    };
-
-    const renderFavoritesOverlay = () => {
-      favoritesContainer.innerHTML = "";
-      if (favorites.length === 0) {
-        favoritesContainer.innerHTML = "<p style='text-align:center;padding:40px;color:#94a3b8;font-size:1.1rem;'>No favorites yet. Add some stations!</p>";
-        return;
-      }
-      favorites.forEach(st => {
-        const div = createEl("div", {
-          class: "favItem",
-          html: `<span>${st.name}</span><span style="color:#94a3b8;">${st.country}</span>`,
-          onclick: () => { playStation(st); favoritesOverlay.style.display = 'none'; }
-        });
-        favoritesContainer.appendChild(div);
-      });
-    };
-
-    const toggleFavorite = st => {
-      favorites = favorites.find(f => f.stationuuid === st.stationuuid)
-        ? favorites.filter(f => f.stationuuid !== st.stationuuid)
-        : [...favorites, st];
-      localStorage.setItem("favorites", JSON.stringify(favorites));
-    };
-
-    const updatePlayerUI = (st) => {
-      playerStationName.textContent = st.name;
-
-      let details = [];
-      details.push(`🌍 ${st.country}`);
-
-      if (st.tags && st.tags.trim() !== '') {
-        details.push(`🎵 ${st.tags.split(',')[0]}`);
-      }
-
-      if (st.tags) {
-        const freqMatch = st.tags.match(/(\d+\.?\d*)\s*(FM|MHz|AM|KHz)/i);
-        if (freqMatch) {
-          details.push(`📡 ${freqMatch[0]}`);
-        }
-      }
-
-      if (st.bitrate) {
-        details.push(`🎵 ${st.bitrate} kbps`);
-      }
-
-      playerStationDetails.innerHTML = details.map(d => `<span>${d}</span>`).join('');
-    };
-
-    const playStation = st => {
-      if (!isAudioContextInitialized) {
-        initAudioContext();
-      }
-
-      const existingIndex = playlist.findIndex(s => s.stationuuid === st.stationuuid);
-
-      if (existingIndex !== -1) {
-        currentStationIndex = existingIndex;
-      } else {
-        playlist.push(st);
-        currentStationIndex = playlist.length - 1;
-      }
-
-      player.src = st.url_resolved;
-      player.volume = volumeSlider.value / 100;
-      player.play().then(() => {
-        isPlaying = true;
-        playPauseBtn.textContent = '⏸';
-        if (audioContext && audioContext.state === 'suspended') {
-          audioContext.resume();
-        }
-      }).catch(e => {
-        console.error('Error playing:', e);
-      });
-
-      updatePlayerUI(st);
-      playerContainer.style.display = "block";
-      renderPlaylist();
-    };
-
-    const renderPlaylist = () => {
-      playlistContainer.innerHTML = "";
-      playlist.forEach((st, idx) => {
-        const div = createEl("div", {
-          class: idx === currentStationIndex ? "item active" : "item",
-          text: st.name,
-          onclick: () => {
-            currentStationIndex = idx;
-            playStation(st);
-          }
-        });
-        playlistContainer.appendChild(div);
-      });
-    };
-
-    const createStationCard = (st) => {
-      if (!st.url_resolved) return null;
-
-      let qualityBadge = '';
-      if (st.bitrate >= 128) {
-        qualityBadge = '<span style="background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%); padding: 4px 10px; border-radius: 12px; font-size: 0.75rem; font-weight: 700; color: white;">HD</span>';
-      } else if (st.bitrate >= 64) {
-        qualityBadge = '<span style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 4px 10px; border-radius: 12px; font-size: 0.75rem; font-weight: 700; color: white;">HQ</span>';
-      }
-
-      let frequencyBadge = '';
-      if (st.tags) {
-        const freqMatch = st.tags.match(/(\d+\.?\d*)\s*(FM|MHz|AM|KHz)/i);
-        if (freqMatch) {
-          frequencyBadge = `<span class="frequency-badge">📡 ${freqMatch[0]}</span>`;
-        }
-      }
-
-      const stationDiv = createEl("div", { class: "station" });
-      stationDiv.innerHTML = `
-    <h2>${st.name}${qualityBadge}</h2>
-    <p>
-      ${st.country}
-      ${st.tags ? ' | ' + st.tags.split(',')[0] : ''}
-      ${st.bitrate ? ' | ' + st.bitrate + ' kbps' : ''}
-      ${frequencyBadge}
-    </p>
-    <div class="station-actions">
-      <button class="listen">▶ Play</button>
-      <button class="fav">${favorites.find(f => f.stationuuid === st.stationuuid) ? "★" : "☆"}</button>
-    </div>
-  `;
-      stationDiv.querySelector(".listen").onclick = () => playStation(st);
-      stationDiv.querySelector(".fav").onclick = (e) => {
-        e.stopPropagation();
-        toggleFavorite(st);
-        stationDiv.querySelector(".fav").textContent = favorites.find(f => f.stationuuid === st.stationuuid) ? "★" : "☆";
-      };
-      return stationDiv;
-    };
-
-    const renderStations = data => {
-      stationsDiv.innerHTML = "";
-      const filteredData = filterQualityStations(data);
-
-      if (filteredData.length === 0) {
-        stationsDiv.innerHTML = "<p style='text-align:center;padding:40px;color:#94a3b8;font-size:1.1rem;grid-column:1/-1;'>No quality stations found. Try another search!</p>";
-        return;
-      }
-
-      filteredData.forEach(st => {
-        const card = createStationCard(st);
-        if (card) stationsDiv.appendChild(card);
-      });
-    };
-
-    const loadCountryStations = async (country, container) => {
-      if (loadedCountries[country]) return;
-
-      container.innerHTML = "<div style='text-align:center;padding:20px;'><div class='loading'></div></div>";
-
-      try {
-        const res = await fetch(`${API}?country=${encodeURIComponent(country)}&limit=100`);
-        const data = await res.json();
-        const filteredData = filterQualityStations(data);
-
-        container.innerHTML = "";
-        const grid = createEl("div", { class: "country-stations-grid" });
-
-        if (filteredData.length === 0) {
-          container.innerHTML = "<p style='text-align:center;padding:20px;color:#94a3b8;'>No quality stations available for this country.</p>";
-          return;
-        }
-
-        filteredData.slice(0, 30).forEach(st => {
-          const card = createStationCard(st);
-          if (card) grid.appendChild(card);
-        });
-
-        container.appendChild(grid);
-        loadedCountries[country] = true;
-      } catch (e) {
-        container.innerHTML = "<p style='text-align:center;padding:20px;color:#ef4444;'>Error loading stations.</p>";
-      }
-    };
-
-    const createCountryCard = (country, stationCount) => {
-      const card = createEl("div", { class: "country-card" });
-
-      const header = createEl("div", { class: "country-header" });
-      header.innerHTML = `
-    <div class="country-flag">${getFlag(country)}</div>
-    <div class="country-info">
-      <div class="country-name">${country}</div>
-      <div class="country-count">${stationCount} stations</div>
-    </div>
-    <div class="country-arrow">▶</div>
-  `;
-
-      const stationsContainer = createEl("div", { class: "country-stations" });
-
-      header.onclick = () => {
-        const isOpen = card.classList.contains('open');
-        document.querySelectorAll('.country-card.open').forEach(c => {
-          if (c !== card) c.classList.remove('open');
-        });
-
-        if (!isOpen) {
-          card.classList.add('open');
-          loadCountryStations(country, stationsContainer);
-        } else {
-          card.classList.remove('open');
-        }
-      };
-
-      card.appendChild(header);
-      card.appendChild(stationsContainer);
-      return card;
-    };
-
-    // Recherche combinée nom + fréquence
-    searchInput.addEventListener("input", async (e) => {
-      const value = e.target.value.trim();
-
-      if (value.length === 0) {
-        countriesListDiv.style.display = 'block';
-        stationsDiv.style.display = 'none';
-        return;
-      }
-
-      if (value.length < 2) return;
-
-      countriesListDiv.style.display = 'none';
-      stationsDiv.style.display = 'grid';
-      stationsDiv.innerHTML = "<div style='text-align:center;padding:40px;grid-column:1/-1;'><div class='loading'></div></div>";
-
-      try {
-        // Recherche par nom
-        const nameRes = await fetch(`${API}?name=${encodeURIComponent(value)}&limit=100`);
-        const nameData = await nameRes.json();
-
-        // Recherche par fréquence/tag
-        const freqRes = await fetch(`${API}?tag=${encodeURIComponent(value)}&limit=100`);
-        const freqData = await freqRes.json();
-
-        // Fusionner les résultats en évitant les doublons
-        const allStations = [...nameData];
-        freqData.forEach(freqStation => {
-          if (!allStations.find(s => s.stationuuid === freqStation.stationuuid)) {
-            allStations.push(freqStation);
-          }
-        });
-
-        renderStations(allStations);
-      } catch (e) {
-        stationsDiv.innerHTML = "<p style='text-align:center;padding:40px;color:#ef4444;font-size:1.1rem;grid-column:1/-1;'>Error loading stations. Please try again!</p>";
-      }
-    });
-
-    // Sleep Timer Functions
-    const formatTime = (seconds) => {
-      const mins = Math.floor(seconds / 60);
-      const secs = seconds % 60;
-      return `${mins}:${secs.toString().padStart(2, '0')}`;
-    };
-
-    const updateTimerDisplay = () => {
-      if (!sleepTimerEndTime) return;
-
-      const now = Date.now();
-      const remaining = Math.max(0, Math.floor((sleepTimerEndTime - now) / 1000));
-
-      if (remaining <= 0) {
-        stopSleepTimer(true);
-        return;
-      }
-
-      timerCountdown.textContent = formatTime(remaining);
-    };
-
-    const startSleepTimer = (minutes) => {
-      if (sleepTimerTimeout) {
-        stopSleepTimer(false);
-      }
-
-      const milliseconds = minutes * 60 * 1000;
-      sleepTimerEndTime = Date.now() + milliseconds;
-
-      // Arrêter la musique après le délai
-      sleepTimerTimeout = setTimeout(() => {
-        player.pause();
-        isPlaying = false;
-        playPauseBtn.textContent = '▶';
-        stopSleepTimer(false);
-        alert('😴 Sleep timer ended! Music stopped.');
-      }, milliseconds);
-
-      // Mettre à jour l'affichage chaque seconde
-      sleepTimerInterval = setInterval(updateTimerDisplay, 1000);
-
-      // Affichage initial
-      updateTimerDisplay();
-
-      // Changer l'interface
-      timerSetup.style.display = 'none';
-      timerActive.style.display = 'block';
-      timerActiveDisplay.style.display = 'block';
-
-      sleepTimerBtn.textContent = '😴 Timer Active';
-      sleepTimerBtn.style.background = 'linear-gradient(135deg, #11998e 0%, #38ef7d 100%)';
-    };
-
-    const stopSleepTimer = (closeModal = false) => {
-      if (sleepTimerTimeout) {
-        clearTimeout(sleepTimerTimeout);
-        sleepTimerTimeout = null;
-      }
-
-      if (sleepTimerInterval) {
-        clearInterval(sleepTimerInterval);
-        sleepTimerInterval = null;
-      }
-
-      sleepTimerEndTime = null;
-
-      // Réinitialiser l'interface
-      timerSetup.style.display = 'block';
-      timerActive.style.display = 'none';
-      timerActiveDisplay.style.display = 'none';
-      timerCountdown.textContent = '--:--';
-      customTimer.value = '';
-
-      sleepTimerBtn.textContent = '😴 Sleep Timer';
-      sleepTimerBtn.style.background = 'var(--accent)';
-
-      if (closeModal) {
-        sleepTimerModal.style.display = 'none';
-      }
-    };
-
-    // Événements Sleep Timer
-    sleepTimerBtn.onclick = () => {
-      sleepTimerModal.style.display = 'flex';
-    };
-
-    cancelTimerSetup.onclick = () => {
-      sleepTimerModal.style.display = 'none';
-    };
-
-    // Fermer en cliquant en dehors
-    sleepTimerModal.onclick = (e) => {
-      if (e.target === sleepTimerModal) {
-        sleepTimerModal.style.display = 'none';
-      }
-    };
-
-    // Boutons presets
-    document.querySelectorAll('.timer-preset-btn').forEach(btn => {
-      btn.onclick = () => {
-        const minutes = parseInt(btn.dataset.minutes);
-        startSleepTimer(minutes);
-      };
-    });
-
-    // Démarrer avec timer personnalisé
-    startTimer.onclick = () => {
-      const minutes = parseInt(customTimer.value);
-      if (minutes && minutes > 0 && minutes <= 999) {
-        startSleepTimer(minutes);
-      } else {
-        alert('Please enter a valid time (1-999 minutes)');
-      }
-    };
-
-    // Arrêter le timer
-    stopTimer.onclick = () => {
-      stopSleepTimer(true);
-    };
-
-    // Permettre Enter pour valider le custom timer
-    customTimer.addEventListener('keypress', (e) => {
-      if (e.key === 'Enter') {
-        startTimer.click();
-      }
-    });
-
-    const loadCountries = async () => {
-      try {
-        const res = await fetch(API_COUNTRIES);
-        const data = await res.json();
-
-        const countries = data
-          .filter(c => c.stationcount > 0)
-          .sort((a, b) => b.stationcount - a.stationcount);
-
-        const popularCountries = ['France', 'United States', 'United Kingdom', 'Germany', 'Spain', 'Italy', 'Japan', 'Canada', 'Australia', 'Brazil'];
-
-        const popular = countries.filter(c => popularCountries.includes(c.name));
-        const others = countries.filter(c => !popularCountries.includes(c.name));
-
-        [...popular, ...others].forEach(c => {
-          const card = createCountryCard(c.name, c.stationcount);
-          countriesListDiv.appendChild(card);
-        });
-
-      } catch (e) {
-        console.error('Error loading countries:', e);
-        countriesListDiv.innerHTML = "<p style='text-align:center;padding:40px;color:#ef4444;'>Error loading countries.</p>";
-      }
-    };
-
-    // Player controls
-    playPauseBtn.onclick = () => {
-      if (isPlaying) {
-        player.pause();
-        isPlaying = false;
-        playPauseBtn.textContent = '▶';
-      } else {
-        player.play();
-        isPlaying = true;
-        playPauseBtn.textContent = '⏸';
-      }
-    };
-
-    prevBtn.onclick = () => {
-      if (playlist.length === 0) return;
-      currentStationIndex = (currentStationIndex - 1 + playlist.length) % playlist.length;
-      playStation(playlist[currentStationIndex]);
-    };
-
-    nextBtn.onclick = () => {
-      if (playlist.length === 0) return;
-      currentStationIndex = (currentStationIndex + 1) % playlist.length;
-      playStation(playlist[currentStationIndex]);
-    };
-
-    volumeSlider.oninput = (e) => {
-      player.volume = e.target.value / 100;
-    };
-
-    playerClose.onclick = () => {
-      player.pause();
-      isPlaying = false;
-      playerContainer.style.display = 'none';
-      playerContainer.classList.remove('minimized');
-      document.body.classList.remove('player-minimized');
-      playPauseBtn.textContent = '▶';
-    };
-
-    playerMinimize.onclick = (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      const isMinimized = playerContainer.classList.contains('minimized');
-      if (isMinimized) {
-        playerContainer.classList.remove('minimized');
-        document.body.classList.remove('player-minimized');
-        playerMinimize.textContent = '▼ Reduce';
-      } else {
-        playerContainer.classList.add('minimized');
-        document.body.classList.add('player-minimized');
-        playerMinimize.textContent = '▲ Expand';
-      }
-    };
-
-    player.onended = () => {
-      if (playlist.length > 1) {
-        nextBtn.click();
-      } else {
-        isPlaying = false;
-        playPauseBtn.textContent = '▶';
-      }
-    };
-
-    player.onplay = () => {
-      isPlaying = true;
-      playPauseBtn.textContent = '⏸';
-    };
-
-    player.onpause = () => {
-      isPlaying = false;
-      playPauseBtn.textContent = '▶';
-    };
-
-    favoritesMenu.onclick = () => {
-      renderFavoritesOverlay();
-      favoritesOverlay.style.display = "flex";
-    };
-
-    closeFav.onclick = () => favoritesOverlay.style.display = "none";
-
-    toggleTheme.onclick = () => {
-      document.body.classList.toggle("light");
-      toggleTheme.textContent = document.body.classList.contains("light") ? "☀️ Theme" : "🌙 Theme";
-    };
-
-    stationsDiv.style.display = 'none';
-    loadCountries();
-  </script>
+  <audio id="audio" preload="none"></audio>
+</footer>
+
+<script>
+/* World Radio v2.0 - (c) 2026 Rafael ISTE - FarTekTV */
+(() => {
+'use strict';
+const $ = s => document.querySelector(s);
+const HOSTS = ['https://de1.api.radio-browser.info','https://nl1.api.radio-browser.info','https://at1.api.radio-browser.info'];
+const store = {
+  get(k, d){ try { const v = localStorage.getItem(k); return v == null ? d : JSON.parse(v); } catch { return d; } },
+  set(k, v){ try { localStorage.setItem(k, JSON.stringify(v)); } catch {} }
+};
+// Escape every API string before it reaches innerHTML (XSS protection).
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+const audio = $('#audio'), list = $('#list'), msg = $('#msg');
+const S = { list: [], cur: null, view: null, countries: [], favs: store.get('wr.favs', []), vol: store.get('wr.vol', 70), fails: 0, urls: [], ui: 0 };
+
+/* ---------- API with mirror fallback ---------- */
+let mirror = 0, ctrl = null;
+async function api(path, signal){
+  let err;
+  for (let i = 0; i < HOSTS.length; i++){
+    const k = (mirror + i) % HOSTS.length;
+    try {
+      const r = await fetch(HOSTS[k] + path, { signal });
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      mirror = k; return await r.json();
+    } catch (e) { if (e.name === 'AbortError') throw e; err = e; }
+  }
+  throw err;
+}
+const clean = arr => {
+  const seen = new Set();
+  return arr.filter(s => {
+    const u = (s.url_resolved || '').trim();
+    if (!u || !s.name || !s.name.trim() || seen.has(u) || /\.(html?|php|asp)(\?|$)/i.test(u)) return false;
+    seen.add(u); return true;
+  }).sort((a, b) => (b.votes || 0) - (a.votes || 0));
+};
+const Q = 'hidebroken=true&order=votes&reverse=true';
+
+/* ---------- Helpers ---------- */
+const freqOf = s => { const m = (s.name + ' ' + (s.tags || '')).match(/\b(8[7-9]|9\d|10[0-8])[.,](\d)\b/); return m ? parseFloat(m[1] + '.' + m[2]) : null; };
+const hue = str => { let h = 0; for (const c of str) h = (h * 31 + c.charCodeAt(0)) % 360; return h; };
+const initials = n => n.trim().split(/\s+/).slice(0, 2).map(w => w[0]).join('').toUpperCase().slice(0, 2) || 'FM';
+const isFav = s => S.favs.some(f => f.stationuuid === s.stationuuid);
+const slim = s => ({ stationuuid: s.stationuuid, name: s.name, url_resolved: s.url_resolved, countrycode: s.countrycode, country: s.country, tags: s.tags, bitrate: s.bitrate });
+
+/* ---------- Rendering ---------- */
+function setHead(t, s){ $('#title').textContent = t; $('#sub').textContent = s || ''; }
+function showMsg(t, err){ msg.hidden = !t; msg.textContent = t || ''; msg.className = 'msg' + (err ? ' err' : ''); }
+function render(){
+  list.innerHTML = S.list.map((s, i) => {
+    const f = freqOf(s), tag = (s.tags || '').split(',')[0].trim(), h = hue(s.name);
+    return `<li class="row${S.cur && S.cur.stationuuid === s.stationuuid ? ' on' : ''}" data-i="${i}" data-id="${esc(s.stationuuid)}">
+      <div class="tile" style="background:hsl(${h} 70% 68%)">${esc(initials(s.name))}</div>
+      <div class="meta"><b>${esc(s.name.trim())}</b><small>${esc(s.country || s.countrycode || '')}${tag ? ', ' + esc(tag) : ''}${s.bitrate ? ', ' + s.bitrate + ' kbps' : ''}</small></div>
+      <div class="right">${f ? `<span class="freq">${f.toFixed(1)}</span>` : ''}
+        <button class="star${isFav(s) ? ' is' : ''}" data-fav aria-pressed="${isFav(s)}" aria-label="Favorite ${esc(s.name.trim())}">&#9733;</button></div></li>`;
+  }).join('');
+}
+function markActive(){
+  list.querySelectorAll('.row').forEach(r => r.classList.toggle('on', !!S.cur && r.dataset.id === S.cur.stationuuid));
+}
+
+/* ---------- Views ---------- */
+async function load(view, title, sub, path){
+  S.view = view; setHead(title, sub); showMsg('Tuning in...'); list.innerHTML = '';
+  document.querySelectorAll('.c').forEach(c => c.setAttribute('aria-current', c.dataset.v === view));
+  if (ctrl) ctrl.abort(); ctrl = new AbortController();
+  try {
+    const data = await path(ctrl.signal);
+    S.list = clean(data).slice(0, 80);
+    showMsg(S.list.length ? '' : 'No working stations found. Try another search or country.');
+    setHead(title, S.list.length ? S.list.length + ' stations, most voted first' : '');
+    render();
+  } catch (e) {
+    if (e.name !== 'AbortError') showMsg('Could not reach the station directory. Check your connection and try again.', true);
+  }
+}
+const openCountry = c => { store.set('wr.cc', c.iso_3166_1); load('c:' + c.iso_3166_1, c.name, '', sg => api(`/json/stations/search?countrycode=${encodeURIComponent(c.iso_3166_1)}&${Q}&limit=100`, sg)); };
+function openFavs(){
+  S.view = 'favs'; if (ctrl) ctrl.abort(); S.list = S.favs.slice();
+  document.querySelectorAll('.c').forEach(c => c.setAttribute('aria-current', c.dataset.v === 'favs'));
+  setHead('Favorites', S.list.length ? S.list.length + ' saved stations' : ''); render();
+  showMsg(S.list.length ? '' : 'No favorites yet. Select the star on any station to keep it here.');
+}
+function search(v){
+  const e = encodeURIComponent(v);
+  load('q', 'Results for "' + v + '"', '', async sg => {
+    const [a, b] = await Promise.all([api(`/json/stations/search?name=${e}&${Q}&limit=60`, sg), api(`/json/stations/search?tag=${e}&${Q}&limit=60`, sg)]);
+    return a.concat(b);
+  });
+}
+
+/* ---------- Countries ---------- */
+function renderCountries(filter = ''){
+  const f = filter.toLowerCase();
+  $('#countries').innerHTML = `<button class="c favs" data-v="favs"${S.view === 'favs' ? ' aria-current="true"' : ''}>Favorites <small>${S.favs.length}</small></button>` +
+    S.countries.filter(c => c.name.toLowerCase().includes(f)).map(c =>
+      `<button class="c" data-v="c:${esc(c.iso_3166_1)}" data-cc="${esc(c.iso_3166_1)}"${S.view === 'c:' + c.iso_3166_1 ? ' aria-current="true"' : ''}>${esc(c.name)} <small>${c.stationcount}</small></button>`).join('');
+}
+async function init(){
+  try {
+    const data = await api('/json/countries');
+    S.countries = data.filter(c => c.stationcount > 0 && c.iso_3166_1).sort((a, b) => b.stationcount - a.stationcount);
+  } catch { showMsg('Could not load the country list.', true); setHead('World Radio'); return; }
+  renderCountries();
+  const region = (navigator.language.split('-')[1] || '').toUpperCase();
+  const pick = S.countries.find(c => c.iso_3166_1 === store.get('wr.cc', region)) || S.countries.find(c => c.iso_3166_1 === 'FR') || S.countries[0];
+  openCountry(pick); renderCountries($('#cfilter').value);
+  const last = store.get('wr.last', null);
+  if (last){ S.cur = last; showNow(last, 'Ready. Press play to resume.'); }
+}
+
+/* ---------- Player ---------- */
+function showNow(s, state, err){
+  $('#nName').textContent = s.name.trim();
+  const st = $('#nState'); st.textContent = state; st.className = err ? 'err' : '';
+  const f = freqOf(s);
+  $('#needle').style.left = (f ? 4 + (f - 87.5) / 20.5 * 92 : 4 + hue(s.name) / 360 * 92) + '%';
+  document.title = s.name.trim() + ' | World Radio';
+  if ('mediaSession' in navigator){
+    navigator.mediaSession.metadata = new MediaMetadata({ title: s.name.trim(), artist: s.country || 'World Radio' });
+  }
+}
+function play(s){
+  S.cur = s; S.fails = S.fails; store.set('wr.last', slim(s));
+  const u = s.url_resolved;
+  // On HTTPS pages, try the secure variant of http streams first, then the original.
+  S.urls = location.protocol === 'https:' && u.startsWith('http:') ? [u.replace('http:', 'https:'), u] : [u];
+  tryNext(s); markActive();
+}
+function tryNext(s){
+  const u = S.urls.shift();
+  if (!u) return failed(s);
+  audio.src = u; audio.volume = S.vol / 100;
+  showNow(s, 'Connecting...');
+  audio.play().catch(() => {});
+}
+function failed(s){
+  S.fails++;
+  showNow(s, 'This stream is offline.' + (S.fails < 4 && S.list.length > 1 ? ' Trying the next one...' : ''), true);
+  document.body.classList.remove('playing');
+  if (S.fails < 4 && S.list.length > 1) setTimeout(() => step(1), 1200);
+}
+function idx(){ return S.list.findIndex(x => S.cur && x.stationuuid === S.cur.stationuuid); }
+function step(d){
+  if (!S.list.length) return;
+  const i = idx(); play(S.list[(i < 0 ? (d > 0 ? 0 : S.list.length - 1) : (i + d + S.list.length) % S.list.length)]);
+}
+function toggle(){
+  if (!S.cur) return;
+  if (audio.paused){ if (!audio.src) play(S.cur); else audio.play().catch(() => play(S.cur)); } else audio.pause();
+}
+audio.addEventListener('playing', () => { S.fails = 0; document.body.classList.add('playing'); $('#pp').innerHTML = '&#9208;'; $('#pp').setAttribute('aria-label', 'Pause'); showNow(S.cur, 'On air' + (S.cur.bitrate ? ', ' + S.cur.bitrate + ' kbps' : '')); });
+audio.addEventListener('pause', () => { document.body.classList.remove('playing'); $('#pp').innerHTML = '&#9654;'; $('#pp').setAttribute('aria-label', 'Play'); if (S.cur && !audio.ended && audio.src) $('#nState').textContent = 'Paused'; });
+audio.addEventListener('waiting', () => { if (S.cur) $('#nState').textContent = 'Buffering...'; });
+audio.addEventListener('error', () => { if (S.cur) S.urls.length ? tryNext(S.cur) : failed(S.cur); });
+$('#pp').onclick = toggle; $('#prev').onclick = () => step(-1); $('#next').onclick = () => step(1);
+$('#vol').value = S.vol;
+$('#vol').oninput = e => { S.vol = +e.target.value; audio.volume = S.vol / 100; store.set('wr.vol', S.vol); };
+if ('mediaSession' in navigator){
+  navigator.mediaSession.setActionHandler('play', toggle);
+  navigator.mediaSession.setActionHandler('pause', toggle);
+  navigator.mediaSession.setActionHandler('previoustrack', () => step(-1));
+  navigator.mediaSession.setActionHandler('nexttrack', () => step(1));
+}
+
+/* ---------- Sleep timer (fades out over the last 10 s) ---------- */
+let tEnd = 0, tInt = null;
+function tStop(){
+  clearInterval(tInt); tInt = null; tEnd = 0; audio.volume = S.vol / 100;
+  $('#tbtn').textContent = 'Sleep timer'; $('#tbtn').classList.remove('active'); $('#toff').hidden = true;
+}
+function tStart(min){
+  tStop(); tEnd = Date.now() + min * 60000; $('#toff').hidden = false; $('#tbtn').classList.add('active');
+  const tick = () => {
+    const left = Math.round((tEnd - Date.now()) / 1000);
+    if (left <= 0){ audio.pause(); tStop(); return; }
+    if (left <= 10) audio.volume = S.vol / 100 * left / 10;
+    $('#tbtn').textContent = Math.floor(left / 60) + ':' + String(left % 60).padStart(2, '0');
+  };
+  tick(); tInt = setInterval(tick, 1000); $('#pop').classList.remove('open');
+}
+$('#tbtn').onclick = () => { const o = $('#pop').classList.toggle('open'); $('#tbtn').setAttribute('aria-expanded', o); };
+$('#pop').addEventListener('click', e => { const b = e.target.closest('[data-m]'); if (b) tStart(+b.dataset.m); });
+$('#toff').onclick = () => { tStop(); $('#pop').classList.remove('open'); };
+document.addEventListener('click', e => { if (!e.target.closest('.opts')) $('#pop').classList.remove('open'); });
+
+/* ---------- Events ---------- */
+list.addEventListener('click', e => {
+  const row = e.target.closest('.row'); if (!row) return;
+  const s = S.list[+row.dataset.i];
+  if (e.target.closest('[data-fav]')){
+    S.favs = isFav(s) ? S.favs.filter(f => f.stationuuid !== s.stationuuid) : S.favs.concat(slim(s));
+    store.set('wr.favs', S.favs);
+    if (S.view === 'favs'){ openFavs(); } else { e.target.closest('[data-fav]').classList.toggle('is', isFav(s)); }
+    renderCountries($('#cfilter').value); return;
+  }
+  play(s);
+});
+$('#countries').addEventListener('click', e => {
+  const b = e.target.closest('.c'); if (!b) return;
+  if (b.dataset.v === 'favs') openFavs(); else openCountry(S.countries.find(c => c.iso_3166_1 === b.dataset.cc));
+  $('#q').value = '';
+});
+$('#cfilter').oninput = e => renderCountries(e.target.value);
+let deb;
+$('#q').addEventListener('input', e => {
+  clearTimeout(deb); const v = e.target.value.trim();
+  if (v.length < 2) return;
+  deb = setTimeout(() => search(v), 350);
+});
+$('#q').addEventListener('keydown', e => { if (e.key === 'Escape'){ e.target.value = ''; e.target.blur(); } });
+
+/* Theme: remembered, defaults to the system setting */
+function theme(t){ document.documentElement.dataset.theme = t; $('#theme').textContent = t === 'dark' ? 'Light' : 'Dark'; store.set('wr.theme', t); }
+$('#theme').onclick = () => theme(document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark');
+theme(store.get('wr.theme', matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark'));
+
+/* Keyboard: space play/pause, arrows previous/next, / search */
+document.addEventListener('keydown', e => {
+  if (e.target.closest('input,button') && e.key !== '/') return;
+  if (e.key === ' '){ e.preventDefault(); toggle(); }
+  else if (e.key === 'ArrowRight') step(1);
+  else if (e.key === 'ArrowLeft') step(-1);
+  else if (e.key === '/'){ e.preventDefault(); $('#q').focus(); }
+});
+
+init();
+})();
+</script>
 </body>
-
 </html>
